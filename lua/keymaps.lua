@@ -40,9 +40,3 @@ vim.keymap.set(
 )
 
 
-vim.keymap.set(
- "n",
- "<C-l>",
- ":vsp<CR><C-w>w",
- { desc = "Vertical split screen", silent=true, noremap=true }
-)
