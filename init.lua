@@ -3,6 +3,8 @@ local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 vim.opt.number = true
+-- Use the system clipboard for normal yanks, deletes, and puts.
+vim.opt.clipboard = "unnamedplus"
 
 
 if not vim.uv.fs_stat(lazypath) then
@@ -27,12 +29,12 @@ require("lazy").setup({
     config = function()
         require("telescope").setup({
             pickers = {
-                find_files = {
+		find_files = {
                     find_command = {
                         "fd",
                         "--type", "f",
                         "--hidden",
-                        "--exclude", ".git",
+                        "--exclude", ".git"
                     },
                 },
             },
@@ -49,6 +51,11 @@ require("lazy").setup({
     config = function()
       require("mason").setup()
     end,
+  },
+
+  {
+    "mason-org/mason-lspconfig.nvim",
+    dependencies = { "mason.nvim", "nvim-lspconfig" },
   },
 
   {
