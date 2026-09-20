@@ -1,136 +1,130 @@
 # Neovim configuration
 
-A small Neovim configuration managed with [lazy.nvim](https://github.com/folke/lazy.nvim). It includes Telescope, Neo-tree, completion, Treesitter, Git signs, comments, and LSP support for Rust, Go, TypeScript, Svelte, Terraform, YAML, TOML, and Python.
+A small Neovim configuration managed with [lazy.nvim](https://github.com/folke/lazy.nvim). It provides Telescope search, Neo-tree file browsing, LSP completion and navigation, Treesitter highlighting, Git signs, comments, and an Onedark theme.
 
-## Install
+## Requirements and installation
 
-This configuration uses the Neovim 0.11+ LSP API. Install Neovim 0.11 or newer, then clone this repository into `~/.config/nvim`:
+Neovim **0.11 or newer** is required because the configuration uses the `vim.lsp.config()` and `vim.lsp.enable()` APIs. `git` is required to bootstrap lazy.nvim. Telescope is configured to use `fd` for file searches, and `ripgrep` is useful for Telescope text searches.
+
+Clone the repository into Neovim's configuration directory:
 
 ```sh
 git clone https://github.com/germolinal/neovim-config.git ~/.config/nvim
 nvim
 ```
 
-On the first launch, lazy.nvim bootstraps itself and installs the plugins. Mason then installs the configured language servers. Use `:Lazy` to inspect plugin installation and `:Mason` to inspect or reinstall servers. Restart Neovim after Mason finishes.
+On the first launch, lazy.nvim installs the plugins from `lazy-lock.json`. Mason then installs the configured language servers. Use `:Lazy` to inspect plugins and `:Mason` to inspect or reinstall language servers. Restart Neovim after installation if a server does not attach.
 
 > Back up or remove an existing `~/.config/nvim` before cloning there.
 
-### macOS (Homebrew)
+### macOS
 
 ```sh
-brew install neovim git fd ripgrep node python
+brew install neovim git fd ripgrep
 ```
 
-For clipboard support, Neovim uses macOS's built-in `pbcopy`/`pbpaste` integration.
+Neovim uses macOS's built-in `pbcopy`/`pbpaste` integration for the system clipboard.
 
-### Debian/Ubuntu Linux
+### Debian/Ubuntu
 
 ```sh
 sudo apt update
-sudo apt install -y neovim git fd-find ripgrep nodejs npm python3 python3-pip cargo wl-clipboard
+sudo apt install -y neovim git fd-find ripgrep wl-clipboard
 mkdir -p ~/.local/bin
 ln -sf "$(command -v fdfind)" ~/.local/bin/fd
 ```
 
-Ensure `~/.local/bin` is on `PATH` (it normally is on current Linux distributions). The `fd` symlink matters because Telescope invokes the command as `fd`. On X11, install `xclip` instead of `wl-clipboard`:
+Ensure `~/.local/bin` is on `PATH`. On X11, install `xclip` instead of `wl-clipboard`:
 
 ```sh
 sudo apt install -y xclip
 ```
 
-Other Linux distributions need the equivalent packages: `neovim`, `git`, `fd`, `ripgrep`, Node/npm, Python, Cargo, and either `wl-clipboard` (Wayland) or `xclip` (X11).
+Other Linux distributions need equivalent packages for Neovim, Git, `fd`, `ripgrep`, and a clipboard provider.
 
-### Language servers
+## Language servers
 
-The recommended route is to let Mason install everything automatically. The relevant `:Mason` packages are:
+Mason is configured to ensure these servers are installed:
 
-| Language | Server / Mason package |
-| --- | --- |
-| Terraform | `terraform-ls` / `terraformls` |
-| YAML | `yaml-language-server` / `yamlls` |
-| TOML | `taplo` / `taplo` |
-| Python | `pyright` / `pyright` |
+| File types | LSP server | Mason package |
+| --- | --- | --- |
+| Rust | `rust_analyzer` | `rust-analyzer` |
+| Go | `gopls` | `gopls` |
+| JavaScript/TypeScript | `ts_ls` | `typescript-language-server` |
+| Svelte | `svelte` | `svelte-language-server` |
+| Terraform | `terraformls` | `terraform-ls` |
+| YAML | `yamlls` | `yaml-language-server` |
+| TOML | `taplo` | `taplo` |
+| Python | `pyright` | `pyright` |
 
-If Mason is unavailable or you want the executables managed by the operating system instead, install them manually.
-
-**macOS:**
-
-```sh
-brew install terraform-ls yaml-language-server taplo pyright
-```
-
-**Linux (portable manual approach):**
-
-```sh
-npm install -g yaml-language-server pyright
-cargo install taplo-cli --locked
-```
-
-Install `terraform-ls` from the [HashiCorp terraform-ls releases](https://github.com/hashicorp/terraform-ls/releases) for your architecture and put the `terraform-ls` binary on `PATH`. Mason avoids this manual release download on both macOS and Linux.
-
-Verify external installations with:
-
-```sh
-terraform-ls --version
-yaml-language-server --version
-taplo --version
-pyright --version
-```
-
-Open a Terraform (`.tf`), YAML (`.yml`/`.yaml`), TOML (`.toml`), or Python (`.py`) file and run `:LspInfo` to confirm that its server attached.
+All servers receive nvim-cmp capabilities, and LSP inlay hints are enabled globally. To check an active buffer, use `:LspInfo`. If Mason cannot install a server, install the corresponding executable manually and make sure it is on `PATH`.
 
 ## Keymaps
 
-The leader key is `<Space>`. In key notation, `<C-p>` means Control-P and `<leader>` means Space.
+The global leader and local leader are both `<Space>`. `<C-p>` means Control-P; `<C-S-O>` means Control-Shift-O.
 
 ### Configuration keymaps
 
 | Mode | Key | Action |
 | --- | --- | --- |
-| Normal | `gd` | Go to LSP definition (Telescope) |
-| Normal | `gr` | Find LSP references (Telescope) |
-| Normal | `<C-S-O>` | List document symbols |
-| Normal | `<C-p>` | Find files with Telescope |
-| Normal | `<leader>fI` | Find files including Git-ignored files |
-| Normal | `<leader>xx` | List diagnostics |
-| Normal | `<leader>e` | Show diagnostic under cursor |
+| Normal | `gd` | Go to LSP definitions with Telescope |
+| Normal | `gr` | Find LSP references with Telescope |
+| Normal | `<C-S-O>` | Find symbols in the current file |
+| Normal | `<C-p>` | Find files with Telescope (hidden files allowed, Git-ignored files excluded) |
+| Normal | `<leader>fI` | Find files including hidden and Git-ignored files |
+| Normal | `<leader>xx` | List diagnostics with Telescope |
+| Normal | `<leader>e` | Show the diagnostic under the cursor |
 | Normal | `<leader>b` | Toggle Neo-tree |
-| Normal/Visual | `<leader>y` | Yank selection/text to the system clipboard |
-| Normal | `<leader>Y` | Yank current line to the system clipboard |
-| Normal | `<leader>rl` | Run the current line as a shell command in a bottom terminal split |
-| Normal | `<leader>fd` | Confirm and delete the current file |
+| Normal/Visual | `<leader>y` | Yank text to the system clipboard |
+| Normal | `<leader>Y` | Yank the current line to the system clipboard |
+| Normal | `<leader>fd` | Confirm and delete the current file, then close its buffer |
+| Normal | `<leader>zd` | Open uncommitted changes with zdiff |
+| Normal | `<leader>zD` | Compare the working tree with `main` using zdiff |
 | Normal | `gcc` | Toggle a comment on the current line |
-| Visual | `gc` | Toggle comments on the selected lines |
+| Visual | `gc` | Toggle comments on the selection |
 
-`gcc` and visual `gc` are supplied by Comment.nvim. Because this config sets `clipboard=unnamedplus`, ordinary Vim `y`, `d`, `p`, and their variants use the system clipboard too. The explicit leader clipboard mappings are convenient reminders.
+The `gcc` and visual `gc` mappings are provided by Comment.nvim. Since `clipboard=unnamedplus` is enabled, ordinary yanks, deletes, and puts also use the system clipboard. `<leader>fd` only deletes files, not directories, and asks for confirmation first.
 
-`<leader>rl` is intentionally shell-oriented: it sends the literal current line to a new terminal. It is useful for commands such as `pytest` or `terraform plan`; it does **not** interpret a Python/YAML/Terraform source line as language-specific code. For an interactive terminal use `:terminal` (or `:split | terminal`).
+Zdiff is lazy-loaded when `:Zdiff` or either zdiff mapping is used. The `main` comparison assumes a local `main` branch.
 
-`<leader>fd` deletes the file on disk after confirmation and force-closes its buffer. It does not delete directories.
+### Completion keymaps (Insert mode)
 
-### Useful built-in Vim/Neovim commands
+| Key | Action |
+| --- | --- |
+| `<C-Space>` | Open the completion menu |
+| `<CR>` | Confirm the selected completion (selects the first item if needed) |
+| `<Tab>` / `<S-Tab>` | Select the next / previous completion |
+
+Completion suggestions currently come from LSP (`nvim_lsp`) only.
+
+## Plugins and behavior
+
+- **lazy.nvim** bootstraps and manages plugins; the exact revisions are recorded in `lazy-lock.json`.
+- **Telescope** provides file search, LSP definitions/references/symbols, and diagnostics. File search uses `fd`, includes hidden files, and excludes `.git` while respecting Git ignore rules by default.
+- **Neo-tree** provides the file explorer, toggled with `<leader>b`.
+- **nvim-lspconfig**, **mason.nvim**, and **mason-lspconfig.nvim** configure and install the language servers listed above.
+- **nvim-cmp** and **cmp-nvim-lsp** provide LSP completion.
+- **nvim-treesitter** starts Treesitter highlighting when a parser is available and runs `:TSUpdate` when installed or updated.
+- **gitsigns.nvim** displays Git changes in the sign column using its default setup.
+- **Comment.nvim** supplies the `gcc` and `gc` comment mappings.
+- **zdiff.nvim** opens diffs for uncommitted changes or changes relative to `main`.
+- **onedark.nvim** is loaded with the `darker` style.
+
+The configuration also enables line numbers and sets both `mapleader` and `maplocalleader` to Space.
+
+## Useful built-in commands
 
 | Task | Keys / command |
 | --- | --- |
-| Comment without plugin | Insert `#`, `//`, etc. appropriate to the filetype; use `gcc`/`gc` for automatic comment syntax |
-| Copy/yank | `y{motion}`, `yy` (line), `yaw` (word), `"+y` (explicit system clipboard) |
-| Paste | `p` after cursor, `P` before cursor |
-| Delete | `d{motion}`, `dd` (line), `x` (character) |
+| Copy / yank | `y{motion}`, `yy`, or `"+y` |
+| Paste | `p` / `P` |
 | Undo / redo | `u` / `<C-r>` |
-| Horizontal / vertical split | `:split` / `:vsplit`, or `<C-w>s` / `<C-w>v` |
+| Split | `:split` / `:vsplit` or `<C-w>s` / `<C-w>v` |
 | Move between splits | `<C-w>h`, `<C-w>j`, `<C-w>k`, `<C-w>l` |
-| Close a split | `:close` or `<C-w>c` |
-| Save / quit | `:write` (`:w`), `:quit` (`:q`), `:wq`, `:q!` |
-| Search forward / backward | `/pattern<CR>` / `?pattern<CR>`; `n` next and `N` previous |
-| Search word under cursor | `*` forward, `#` backward |
-| Case-insensitive search | `:set ignorecase smartcase` — lowercase queries ignore case; a query containing uppercase becomes case-sensitive |
-| Force case-sensitive / insensitive once | Add `\C` / `\c` to a pattern, e.g. `/Name\C` or `/Name\c` |
-| Replace | `:%s/old/new/g`; add `c` (`:%s/old/new/gc`) to confirm each replacement |
-| Run one shell command | `:!command` (for example, `:!pytest`) |
-| Open terminal | `:terminal` or `:split | terminal`; use `<C-\\><C-n>` to leave Terminal mode |
+| Save / quit | `:w`, `:q`, `:wq`, `:q!` |
+| Search | `/pattern<CR>` / `?pattern<CR>`; `n` and `N` navigate |
+| Replace | `:%s/old/new/g` (add `c` to confirm) |
+| Run a shell command | `:!command` |
+| Open a terminal | `:terminal`; leave Terminal mode with `<C-\\><C-n>` |
 
-## Telescope and ignored files
-
-Regular `<C-p>` searches include hidden files but respect `.gitignore`, so ignored secrets such as `.env` do not clutter normal results. Use `<leader>fI` only when needed; it invokes Telescope with `no_ignore`, so typing `.env` finds an untracked, ignored `.env` without adding it to Git.
-
-This is preferable to weakening `.gitignore`: `.env` stays ignored by Git and is absent from routine searches, while it remains available in the explicit ignored-file picker. If it contains secrets, never add it to the repository just to make it searchable.
+For routine searches use `<C-p>`. Use `<leader>fI` deliberately when looking for ignored files such as `.env`; those files remain ignored by Git.
