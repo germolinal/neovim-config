@@ -38,6 +38,9 @@ vim.keymap.set(
 -- Find file (Control + P)
 vim.keymap.set("n", "<C-p>", builtin.find_files, { desc = "Find files" })
 
+-- Live grep (Control + Shift + F)
+vim.keymap.set("n", "<C-S-f>", builtin.live_grep, { desc = "Live grep" })
+
 -- Find hidden and Git-ignored files only when explicitly requested.
 vim.keymap.set("n", "<leader>fI", function()
   builtin.find_files({ hidden = true, no_ignore = true })
