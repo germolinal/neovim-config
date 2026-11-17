@@ -27,15 +27,21 @@ require("lazy").setup({
       "nvim-lua/plenary.nvim",
     },
     config = function()
+        -- Only use fd when it is installed; otherwise Telescope falls back to rg or find.
+        local find_command = nil
+        if vim.fn.executable("fd") == 1 then
+            find_command = {
+                "fd",
+                "--type", "f",
+                "--hidden",
+                "--exclude", ".git"
+            }
+        end
+
         require("telescope").setup({
             pickers = {
 		find_files = {
-                    find_command = {
-                        "fd",
-                        "--type", "f",
-                        "--hidden",
-                        "--exclude", ".git"
-                    },
+                    find_command = find_command,
                 },
             },
         })
